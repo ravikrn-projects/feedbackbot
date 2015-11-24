@@ -1,9 +1,12 @@
 from pymongo import MongoClient
-
+from config import mongo_config
 
 class Database:
 	def __init__(self, db):
-		self.db = MongoClient()[db]
+		host = mongo_config['host']
+		port = mongo_config['port']
+		url = "mongodb://{host}:{port}".format(host=host, port=port)
+		self.db = MongoClient(url)[db]
 
 
 	def insert(self, collection, data):
