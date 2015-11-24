@@ -6,12 +6,13 @@ from db_helper import Database
 
 db = Database('messages')
 	
-def send(user_id, message):
+def send(user_id, message, choices):
 	url = base_url.format(token=token, method="sendMessage")
-	message = message.split('\n')
-	keyboard_message = json.dumps({'keyboard': [[item] for item in message[1:]]})
-	params = {'chat_id': user_id, 'text': message[0], 
-	'reply_markup': keyboard_message}
+	params = {
+				'chat_id': user_id, 
+				'text': message, 
+				'reply_markup': json.dumps({'keyboard': [[item] for item in choices]})
+			}
 	try:
 		response = requests.get(url, params=params).json()
 	except Exception as e:
@@ -19,14 +20,12 @@ def send(user_id, message):
 	
 
 def send_question(user_id, question_no):
-
 	if question_no < len(questions):
 		question_data = questions[question_no]
 		message = question_data.get('question')
 		choices = question_data.get('choices')
-		for choice in choices:
-			message += "\n" + choice
-		send(user_id, message)
+		send(user_id, message, choices)
+		
 		payload = {
 					'user_id': user_id, 
 					'message': message,
@@ -69,14 +68,13 @@ def callback(update_id):
 	
 	if len(message_list) != 0:
 		update_id = message_list[-1]['update_id']
-	return update_id, question_no
+	return update_id
 
 
 if __name__ == '__main__':
 	update_id = None
 	
 	while True:
-		pre_update_id, pre_question_no = callback(update_id)
+		pre_update_id = callback(update_id)
 		if pre_update_id is not None:
 			update_id = pre_update_id + 1
-			question_no = pre_question_no
