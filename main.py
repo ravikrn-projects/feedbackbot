@@ -23,13 +23,14 @@ def send(user_id, message, choices):
 def send_question(user_id, question_no):
 	if question_no < len(questions):
 		question_data = questions[question_no]
-		message = question_data.get('question')
+		question = question_data.get('question')
 		choices = question_data.get('choices')
-		send(user_id, message, choices)
+		send(user_id, question, choices)
 		
 		payload = {
 					'user_id': user_id, 
-					'message': message,
+					'question': question,
+					'choices': choices,
 					'question_no': question_no
 				}
 		db.insert('sent', payload)
