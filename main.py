@@ -2,8 +2,10 @@ import requests
 from config import token, base_url
 from questions import questions
 import json
+from db_helper import Database
 
-
+db = Database('messages')
+	
 def send(user_id, message):
 	url = base_url.format(token=token, method="sendMessage")
 	message = message.split('\n')
@@ -25,10 +27,16 @@ def send_question(user_id, question_no):
 		for choice in choices:
 			message += "\n" + choice
 		send(user_id, message)
+		payload = {
+					'user_id': user_id, 
+					'message': message,
+					'question_no': question_no
+				}
+		db.insert('sent', payload)
 
 
 def send_response(user_id, question_no):
-	print question_no
+	# print question_no
 	send_question(user_id, question_no)
 	return question_no+1
 	
@@ -44,6 +52,7 @@ def callback(update_id, question_no):
 	message_list = response["result"]
 	if len(message_list) != 0:
 		for message in message_list:
+			db.insert('recieved', message)
 			# print message['update_id'], message['message']['text']
 			question_no = send_response(message['message']['from']['id'], question_no)
 		update_id = message_list[-1]['update_id']
@@ -53,6 +62,7 @@ def callback(update_id, question_no):
 if __name__ == '__main__':
 	update_id = None
 	question_no = 0
+
 	while True:
 		pre_update_id, pre_question_no = callback(update_id, question_no)
 		if pre_update_id is not None:
