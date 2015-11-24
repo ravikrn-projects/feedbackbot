@@ -7,13 +7,20 @@ from db_helper import Database
 
 db = Database('messages')
 	
-def send(user_id, message, choices):
+def send(user_id, message, choices=None):
 	url = base_url.format(token=token, method="sendMessage")
 	params = {
 				'chat_id': user_id, 
-				'text': message, 
-				'reply_markup': json.dumps({'keyboard': [[item] for item in choices]})
+				'text': message
 			}
+	if choices is not None:
+		params.update({
+			 			'reply_markup': json.dumps({'keyboard': [[item] for item in choices]})
+					  	})
+	else:
+		params.update({
+			 			'reply_markup': json.dumps({'hide_keyboard': True})
+					  	})
 	try:
 		response = requests.get(url, params=params).json()
 	except Exception as e:
@@ -34,6 +41,8 @@ def send_question(user_id, question_no):
 					'question_no': question_no
 				}
 		db.insert('sent', payload)
+	else:
+		send(user_id, "Thank You!!!")
 
 
 def send_response(user_id, question_no):
