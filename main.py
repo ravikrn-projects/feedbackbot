@@ -1,4 +1,5 @@
 import requests
+import time
 from config import token, base_url
 from questions import questions
 import json
@@ -35,9 +36,7 @@ def send_question(user_id, question_no):
 
 
 def send_response(user_id, question_no):
-	# print question_no
 	send_question(user_id, question_no)
-	return question_no+1
 	
 
 def get_latest_question_sent(user_id):
@@ -49,7 +48,18 @@ def get_latest_question_sent(user_id):
 	return question_no
 
 
-def callback(update_id):
+def get_latest_update_id():
+	docs = db.find('recieved', {})
+	try:
+		update_id = docs[0]['update_id'] + 1
+	except Exception:
+		update_id = None
+	return update_id
+
+
+def callback():
+	update_id = get_latest_update_id()
+
 	url = base_url.format(token=token, method="getUpdates")
 	params = {'offset': update_id}
 	
@@ -58,23 +68,15 @@ def callback(update_id):
 	except Exception as e:
 		print "Could not get updates. error = {error}".format(error=e)
 	
-	message_list = response["result"]
-	for message in message_list:
-		db.insert('recieved', message)
-		# print message['update_id'], message['message']['text']
-		question_no = get_latest_question_sent(message['message']['from']['id']) + 1
-		print question_no
-		question_no = send_response(message['message']['from']['id'], question_no)
+	if response is not None:
+		message_list = response["result"]
+		for message in message_list:
+			db.insert('recieved', message)
+			question_no = get_latest_question_sent(message['message']['from']['id']) + 1
+			send_response(message['message']['from']['id'], question_no)
 	
-	if len(message_list) != 0:
-		update_id = message_list[-1]['update_id']
-	return update_id
-
 
 if __name__ == '__main__':
-	update_id = None
-	
 	while True:
-		pre_update_id = callback(update_id)
-		if pre_update_id is not None:
-			update_id = pre_update_id + 1
+		callback()
+		
