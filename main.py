@@ -38,30 +38,42 @@ def send_response(user_id, question_no):
 	return question_no+1
 	
 
-def callback(update_id, question_no):
+def get_latest_question_sent(user_id):
+	question_data = db.find('sent', {'user_id': user_id})
+	try:
+		question_no = question_data[0]['question_no']
+	except Exception:
+		question_no = -1
+	return question_no
+
+
+def callback(update_id):
 	url = base_url.format(token=token, method="getUpdates")
 	params = {'offset': update_id}
+	
 	try:
 		response = requests.get(url, params=params).json()
 	except Exception as e:
 		print "Could not get updates. error = {error}".format(error=e)
 	
 	message_list = response["result"]
+	for message in message_list:
+		db.insert('recieved', message)
+		# print message['update_id'], message['message']['text']
+		question_no = get_latest_question_sent(message['message']['from']['id']) + 1
+		print question_no
+		question_no = send_response(message['message']['from']['id'], question_no)
+	
 	if len(message_list) != 0:
-		for message in message_list:
-			db.insert('recieved', message)
-			# print message['update_id'], message['message']['text']
-			question_no = send_response(message['message']['from']['id'], question_no)
 		update_id = message_list[-1]['update_id']
 	return update_id, question_no
 
 
 if __name__ == '__main__':
 	update_id = None
-	question_no = 0
-
+	
 	while True:
-		pre_update_id, pre_question_no = callback(update_id, question_no)
+		pre_update_id, pre_question_no = callback(update_id)
 		if pre_update_id is not None:
 			update_id = pre_update_id + 1
 			question_no = pre_question_no
