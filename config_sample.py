@@ -3,6 +3,6 @@ base_url = "https://api.telegram.org/bot{token}/{method}"
 
 
 mongo_config = {
-		"host": 192.168.0.119,
-		"port": 27017
+		"host": "192.168.0.119",
+		"port": "27017"
 }
