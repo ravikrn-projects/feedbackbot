@@ -81,8 +81,11 @@ def callback():
 	if response is not None:
 		message_list = response["result"]
 		for message in message_list:
+			user_id = message['message']['from']['id']
+			question_no = get_latest_question_sent(user_id)
+			message.update({'question_no': question_no})
 			db.insert('recieved', message)
-			question_no = get_latest_question_sent(message['message']['from']['id']) + 1
+			question_no = get_latest_question_sent(user_id) + 1
 			send_response(message['message']['from']['id'], question_no)
 	
 
