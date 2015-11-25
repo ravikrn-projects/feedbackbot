@@ -47,7 +47,7 @@ def send_response(user_id, question_no):
 
 
 def get_latest_question_answered(user_id):
-	question_data = db.find('recieved', {'user_id': user_id, 'question_no': {'$exists': True}})
+	question_data = db.find('received', {'user_id': user_id, 'question_no': {'$exists': True}})
 	try:
 		question_no = question_data[0]['question_no']
 	except Exception:
@@ -65,7 +65,7 @@ def get_latest_question_sent(user_id):
 
 
 def get_next_update_id():
-	docs = db.find('recieved', {})
+	docs = db.find('received', {})
 	try:
 		update_id = docs[0]['update_id'] + 1
 	except Exception:
@@ -88,10 +88,10 @@ def send_appropriate_response(message_dict):
 			pass
 		else:
 			send_response(user_id, -3)
-	db.insert('recieved', message_dict)
+	db.insert('received', message_dict)
 
 
-def process_recieved_messages(message_list):
+def process_received_messages(message_list):
 	for message in message_list:
 		message_dict = dict(( key, message.message.__dict__[key]) for key in ('date', 'text'))
 		message_dict.update({'update_id': message.__dict__['update_id'],
@@ -105,7 +105,7 @@ def callback():
 		message_list = bot.getUpdates(offset=offset)
 	except Exception as e:
 		print "Could not get updates. error = {error}".format(error=e)
-	process_recieved_messages(message_list)
+	process_received_messages(message_list)
 	
 		
 if __name__ == '__main__':
