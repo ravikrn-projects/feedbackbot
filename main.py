@@ -8,6 +8,7 @@ import telegram
 db = Database('messages')
 bot = telegram.Bot(token)
 	
+
 def send(user_id, question, choices=None):
 	if choices is not None:
 		keyboard = json.dumps({'keyboard': [[item] for item in choices]})					  	
@@ -50,25 +51,23 @@ def send_response(user_id, question_no):
 		send(user_id, message)
 	else:
 		send_question(user_id, question_no)
-	
+
+
+def get_latest_question(user_id, collection):
+	question_data = db.find(collection, {'user_id': user_id, 'question_no': {'$exists': True}})
+	try:
+		question_no = question_data[0]['question_no']
+	except Exception:
+		question_no = -1
+	return question_no
 
 
 def get_latest_question_answered(user_id):
-	question_data = db.find('received', {'user_id': user_id, 'question_no': {'$exists': True}})
-	try:
-		question_no = question_data[0]['question_no']
-	except Exception:
-		question_no = -1
-	return question_no
+	return get_latest_question(user_id, 'received')
 
 
 def get_latest_question_sent(user_id):
-	question_data = db.find('sent', {'user_id': user_id, 'question_no': {'$exists': True}})
-	try:
-		question_no = question_data[0]['question_no']
-	except Exception:
-		question_no = -1
-	return question_no
+	return get_latest_question(user_id, 'received')
 
 
 def get_next_update_id():
@@ -78,6 +77,7 @@ def get_next_update_id():
 	except Exception:
 		update_id = None
 	return update_id
+
 
 def send_appropriate_response(message_dict):
 	user_id = message_dict['user_id']
