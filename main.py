@@ -1,13 +1,26 @@
 import requests
+import time
 from config import token, base_url
 from questions import questions
+import json
 from db_helper import Database
 
 db = Database('messages')
 	
-def send(user_id, message):
+def send(user_id, message, choices=None):
 	url = base_url.format(token=token, method="sendMessage")
-	params = {'chat_id': user_id, 'text': message}
+	params = {
+				'chat_id': user_id, 
+				'text': message
+			}
+	if choices is not None:
+		params.update({
+			 			'reply_markup': json.dumps({'keyboard': [[item] for item in choices]})
+					  	})
+	else:
+		params.update({
+			 			'reply_markup': json.dumps({'hide_keyboard': True})
+					  	})
 	try:
 		response = requests.get(url, params=params).json()
 	except Exception as e:
@@ -17,51 +30,66 @@ def send(user_id, message):
 def send_question(user_id, question_no):
 	if question_no < len(questions):
 		question_data = questions[question_no]
-		message = question_data.get('question')
+		question = question_data.get('question')
 		choices = question_data.get('choices')
-		choice_id = 'A'
-		for choice in choices:
-			message += "\n" + choice_id + ': ' + choice
-			choice_id = chr(ord(choice_id)+1)
-		send(user_id, message)
+		send(user_id, question, choices)
+		
 		payload = {
 					'user_id': user_id, 
-					'message': message,
+					'question': question,
+					'choices': choices,
 					'question_no': question_no
 				}
 		db.insert('sent', payload)
+	else:
+		send(user_id, "Thank You!!!")
 
 
 def send_response(user_id, question_no):
-	# print question_no
 	send_question(user_id, question_no)
-	return question_no+1
 	
 
-def callback(update_id, question_no):
+def get_latest_question_sent(user_id):
+	question_data = db.find('sent', {'user_id': user_id})
+	try:
+		question_no = question_data[0]['question_no']
+	except Exception:
+		question_no = -1
+	return question_no
+
+
+def get_latest_update_id():
+	docs = db.find('recieved', {})
+	try:
+		update_id = docs[0]['update_id'] + 1
+	except Exception:
+		update_id = None
+	return update_id
+
+
+def callback():
+	update_id = get_latest_update_id()
+
 	url = base_url.format(token=token, method="getUpdates")
 	params = {'offset': update_id}
+	
 	try:
 		response = requests.get(url, params=params).json()
 	except Exception as e:
 		print "Could not get updates. error = {error}".format(error=e)
 	
-	message_list = response["result"]
-	if len(message_list) != 0:
+	if response is not None:
+		message_list = response["result"]
 		for message in message_list:
+			user_id = message['message']['from']['id']
+			question_no = get_latest_question_sent(user_id)
+			message.update({'question_no': question_no})
 			db.insert('recieved', message)
-			# print message['update_id'], message['message']['text']
-			question_no = send_response(message['message']['from']['id'], question_no)
-		update_id = message_list[-1]['update_id']
-	return update_id, question_no
-
+			question_no = get_latest_question_sent(user_id) + 1
+			send_response(message['message']['from']['id'], question_no)
+	
 
 if __name__ == '__main__':
-	update_id = None
-	question_no = 0
-
 	while True:
-		pre_update_id, pre_question_no = callback(update_id, question_no)
-		if pre_update_id is not None:
-			update_id = pre_update_id + 1
-			question_no = pre_question_no
+		callback()
+		

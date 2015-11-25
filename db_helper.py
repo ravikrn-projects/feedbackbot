@@ -1,9 +1,13 @@
+import pymongo
 from pymongo import MongoClient
-
+from config import mongo_config
 
 class Database:
 	def __init__(self, db):
-		self.db = MongoClient()[db]
+		host = mongo_config['host']
+		port = mongo_config['port']
+		url = "mongodb://{host}:{port}".format(host=host, port=port)
+		self.db = MongoClient(url)[db]
 
 
 	def insert(self, collection, data):
@@ -11,4 +15,5 @@ class Database:
 
 
 	def find(self, collection, data):
-		return [item for item in self.db[collection].find(data)]
+		docs = self.db[collection].find(data).sort([("_id", pymongo.DESCENDING)])
+		return [item for item in docs]
