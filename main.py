@@ -20,30 +20,32 @@ def send(user_id, question, choices=None):
 
 
 def send_question(user_id, question_no):
+	question_data = questions[question_no]
+	question = question_data.get('question')
+	choices = question_data.get('choices')
+	send(user_id, question, choices)
+	payload = {
+				'user_id': user_id, 
+				'question': question,
+				'choices': choices,
+				'question_no': question_no
+			}
+	db.insert('sent', payload)
+
+
+def send_response(user_id, question_no):
 	if question_no == -2:
 		message = "Hi there. You have answered {q_no} questions".format(q_no=get_latest_question_answered(user_id)+1)
 		send(user_id, message)
 	elif question_no == -3:
-		send(user_id, "Check back later for more questions. Type info to know about your progress information.")
-	elif question_no < len(questions):
-		question_data = questions[question_no]
-		question = question_data.get('question')
-		choices = question_data.get('choices')
-		send(user_id, question, choices)
-		
-		payload = {
-					'user_id': user_id, 
-					'question': question,
-					'choices': choices,
-					'question_no': question_no
-				}
-		db.insert('sent', payload)
+		message = "Check back later for more questions. Type info to know about your progress information."
+		send(user_id, message)
+	elif question_no >= len(questions):
+		message = "Thank You!!! Type info to know about your progress information."
+		send(user_id, message)
 	else:
-		send(user_id, "Thank You!!! Type info to know about your progress information.")
-
-
-def send_response(user_id, question_no):
-	send_question(user_id, question_no)
+		send_question(user_id, question_no)
+	
 
 
 def get_latest_question_answered(user_id):
@@ -74,7 +76,7 @@ def get_next_update_id():
 
 def send_appropriate_response(message_dict):
 	user_id = message_dict['user_id']
-	if message_dict['text'] == 'info':
+	if message_dict['text'].lower() == 'info':
 		send_response(user_id, -2)
 	else:
 		question_no = get_latest_question_sent(user_id)
