@@ -33,15 +33,20 @@ def send_question(user_id, question_no):
 	db.insert('sent', payload)
 
 
-def send_response(user_id, question_no):
+def get_message(question_no):
 	if question_no == -2:
 		message = "Hi there. You have answered {q_no} questions".format(q_no=get_latest_question_answered(user_id)+1)
-		send(user_id, message)
 	elif question_no == -3:
 		message = "Check back later for more questions. Type info to know about your progress information."
-		send(user_id, message)
 	elif question_no >= len(questions):
 		message = "Thank You!!! Type info to know about your progress information."
+	else:
+		message = None
+	return message
+
+
+def send_response(user_id, question_no):
+	if message is not None:
 		send(user_id, message)
 	else:
 		send_question(user_id, question_no)
