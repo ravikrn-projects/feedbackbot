@@ -24,7 +24,6 @@ def send_question(user_id, question_no):
 		message = "Hi there. You have answered {q_no} questions".format(q_no=get_latest_question_answered(user_id)+1)
 		send(user_id, message)
 	elif question_no == -3:
-		print 'Hi'
 		send(user_id, "Check back later for more questions. Type info to know about your progress information.")
 	elif question_no < len(questions):
 		question_data = questions[question_no]
@@ -65,48 +64,50 @@ def get_latest_question_sent(user_id):
 	return question_no
 
 
-def get_latest_update_id():
+def get_next_update_id():
 	docs = db.find('recieved', {})
 	try:
-		update_id = docs[0]['update_id']
+		update_id = docs[0]['update_id'] + 1
 	except Exception:
 		update_id = None
 	return update_id
 
-
-def callback():
-	update_id = get_latest_update_id()
-	if update_id is not None:
-		offset = update_id+1
+def send_appropriate_response(message_dict):
+	user_id = message_dict['user_id']
+	if message_dict['text'] == 'info':
+		send_response(user_id, -2)
 	else:
-		offset = None
-	try:
-		message_list = bot.getUpdates(offset=offset)
-	except Exception as e:
-		print "Could not get updates. error = {error}".format(error=e)
-	
+		question_no = get_latest_question_sent(user_id)
+		answered_q_no = get_latest_question_answered(user_id)
+		if question_no < 0:
+			send_response(user_id, 0)
+		elif question_no != answered_q_no and message_dict['text'] in questions[question_no]['choices']:
+			message_dict.update({'question_no': question_no})
+			send_response(user_id, question_no+1)
+		elif question_no > answered_q_no:
+			pass
+		else:
+			send_response(user_id, -3)
+	db.insert('recieved', message_dict)
+
+
+def process_recieved_messages(message_list):
 	for message in message_list:
 		message_dict = dict(( key, message.message.__dict__[key]) for key in ('date', 'text'))
 		message_dict.update({'update_id': message.__dict__['update_id'],
 								'user_id': message.message.__dict__['from_user'].id})
-		user_id = message.message.__dict__['from_user'].id
-		if message_dict['text'] == 'info':
-			send_response(user_id, -2)
-		else:
-			question_no = get_latest_question_sent(user_id)
-			answered_q_no = get_latest_question_answered(user_id)
-			if question_no < 0:
-				send_response(user_id, 0)
-			elif question_no != answered_q_no and message_dict['text'] in questions[question_no]['choices']:
-				message_dict.update({'question_no': question_no})
-				send_response(user_id, question_no+1)
-			elif question_no > answered_q_no:
-				pass
-			else:
-				send_response(user_id, -3)
-		db.insert('recieved', message_dict)
+		send_appropriate_response(message_dict)
+
+
+def callback():
+	offset = get_next_update_id()
+	try:
+		message_list = bot.getUpdates(offset=offset)
+	except Exception as e:
+		print "Could not get updates. error = {error}".format(error=e)
+	process_recieved_messages(message_list)
 	
-	
+		
 if __name__ == '__main__':
 	while True:
 		callback()

@@ -20,3 +20,6 @@ class Database:
 
 	def update(self, collection, key, data):
 		self.db[collection].update_one(key, {"$set": data})
+
+	def delete(self, collection):
+		self.db.collection.delete_many({})
