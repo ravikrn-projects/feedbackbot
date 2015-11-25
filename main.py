@@ -1,5 +1,6 @@
 import requests
 import time
+import text_message
 from config import token, base_url
 from questions import questions
 import json
@@ -8,16 +9,19 @@ import telegram
 db = Database('messages')
 bot = telegram.Bot(token)
 	
-def send(user_id, question, choices=None):
+def send(user_id, text=None, choices=None, custom_message=None):
+	if custom_message is not None:
+		text = eval('text_message.'+custom_message)	
 	if choices is not None:
-		keyboard = json.dumps({'keyboard': [[item] for item in choices]})					  	
+		keyboard = json.dumps({'keyboard': [[item] for item in choices]})				
+	elif custom_message == 'onboarding_message':
+		keyboard = json.dumps({'keyboard': [['Yes', 'No']]})	  	
 	else:
 		keyboard = json.dumps({'hide_keyboard': True})
 	try:
-		bot.sendMessage(user_id, question, reply_markup = keyboard)
+		bot.sendMessage(user_id, text, reply_markup = keyboard)
 	except Exception as e:
 		print "Could not send message. error = {error}".format(error=e)
-
 
 def send_question(user_id, question_no):
 	if question_no == -2:
@@ -30,7 +34,6 @@ def send_question(user_id, question_no):
 		question = question_data.get('question')
 		choices = question_data.get('choices')
 		send(user_id, question, choices)
-		
 		payload = {
 					'user_id': user_id, 
 					'question': question,
@@ -63,7 +66,6 @@ def get_latest_question_sent(user_id):
 		question_no = -1
 	return question_no
 
-
 def get_next_update_id():
 	docs = db.find('received', {})
 	try:
@@ -74,11 +76,14 @@ def get_next_update_id():
 
 def send_appropriate_response(message_dict):
 	user_id = message_dict['user_id']
-	if message_dict['text'] == 'info':
+	if message_dict['text'] == '/start Start':
+		send(user_id, custom_message='onboarding_message')
+	elif message_dict['text'].lower() == 'info':
 		send_response(user_id, -2)
 	else:
 		question_no = get_latest_question_sent(user_id)
 		answered_q_no = get_latest_question_answered(user_id)
+		print question_no, answered_q_no
 		if question_no < 0:
 			send_response(user_id, 0)
 		elif question_no != answered_q_no and message_dict['text'] in questions[question_no]['choices']:
@@ -90,14 +95,13 @@ def send_appropriate_response(message_dict):
 			send_response(user_id, -3)
 	db.insert('received', message_dict)
 
-
 def process_received_messages(message_list):
 	for message in message_list:
 		message_dict = dict(( key, message.message.__dict__[key]) for key in ('date', 'text'))
 		message_dict.update({'update_id': message.__dict__['update_id'],
 								'user_id': message.message.__dict__['from_user'].id})
+		print message.message.__dict__['from_user'].id
 		send_appropriate_response(message_dict)
-
 
 def callback():
 	offset = get_next_update_id()
@@ -105,8 +109,7 @@ def callback():
 		message_list = bot.getUpdates(offset=offset)
 	except Exception as e:
 		print "Could not get updates. error = {error}".format(error=e)
-	process_received_messages(message_list)
-	
+	process_received_messages(message_list)	
 		
 if __name__ == '__main__':
 	while True:
