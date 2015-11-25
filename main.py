@@ -34,7 +34,7 @@ def send_question(user_id, question_no):
 	db.insert('sent', payload)
 
 
-def get_message(question_no):
+def get_message(question_no, user_id):
 	if question_no == -2:
 		message = "Hi there. You have answered {q_no} questions".format(q_no=get_latest_question_answered(user_id)+1)
 	elif question_no == -3:
@@ -47,7 +47,7 @@ def get_message(question_no):
 
 
 def send_response(user_id, question_no):
-	message = get_message(question_no)
+	message = get_message(question_no, user_id)
 	if message is not None:
 		send(user_id, message)
 	else:
@@ -68,7 +68,7 @@ def get_latest_question_answered(user_id):
 
 
 def get_latest_question_sent(user_id):
-	return get_latest_question(user_id, 'received')
+	return get_latest_question(user_id, 'sent')
 
 
 def get_next_update_id():
@@ -89,7 +89,7 @@ def send_appropriate_response(message_dict):
 		answered_q_no = get_latest_question_answered(user_id)
 		if question_no < 0:
 			send_response(user_id, 0)
-		elif question_no > answered_q_no and message_dict['text'] in questions[question_no]['choices']:
+		elif question_no != answered_q_no and message_dict['text'] in questions[question_no]['choices']:
 			message_dict.update({'question_no': question_no})
 			send_response(user_id, question_no+1)
 		elif question_no > answered_q_no:
