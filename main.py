@@ -80,22 +80,31 @@ def get_next_update_id():
 	return update_id
 
 
+
+def is_command(message_dict):
+	return message_dict['text'].lower() == 'info'
+
+
+def non_command_response(message_dict, user_id, latest_q_no_sent, latest_q_no_answered):
+	if latest_q_no_sent < 0:
+		send_response(user_id, 0)
+	elif latest_q_no_sent > latest_q_no_answered:
+		if message_dict['text'] in questions[latest_q_no_sent]['choices']:
+			message_dict.update({'question_no': latest_q_no_sent})
+			send_response(user_id, latest_q_no_sent+1)
+	else:
+		send_response(user_id, -3)
+	return message_dict
+
+
 def send_appropriate_response(message_dict):
 	user_id = message_dict['user_id']
-	if message_dict['text'].lower() == 'info':
+	if is_command(message_dict):
 		send_response(user_id, -2)
 	else:
-		question_no = get_latest_question_sent(user_id)
-		answered_q_no = get_latest_question_answered(user_id)
-		if question_no < 0:
-			send_response(user_id, 0)
-		elif question_no != answered_q_no and message_dict['text'] in questions[question_no]['choices']:
-			message_dict.update({'question_no': question_no})
-			send_response(user_id, question_no+1)
-		elif question_no > answered_q_no:
-			pass
-		else:
-			send_response(user_id, -3)
+		latest_q_no_sent = get_latest_question_sent(user_id)
+		latest_q_no_answered = get_latest_question_answered(user_id)
+		non_command_response(message_dict, user_id, latest_q_no_sent, latest_q_no_answered)
 	db.insert('received', message_dict)
 
 
