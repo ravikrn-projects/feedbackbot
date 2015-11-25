@@ -4,25 +4,17 @@ from config import token, base_url
 from questions import questions
 import json
 from db_helper import Database
-
+import telegram
 db = Database('messages')
+bot = telegram.Bot(token)
 	
-def send(user_id, message, choices=None):
-	url = base_url.format(token=token, method="sendMessage")
-	params = {
-				'chat_id': user_id, 
-				'text': message
-			}
+def send(user_id, question, choices=None):
 	if choices is not None:
-		params.update({
-			 			'reply_markup': json.dumps({'keyboard': [[item] for item in choices]})
-					  	})
+		keyboard = json.dumps({'keyboard': [[item] for item in choices]})					  	
 	else:
-		params.update({
-			 			'reply_markup': json.dumps({'hide_keyboard': True})
-					  	})
+		keyboard = json.dumps({'hide_keyboard': True})
 	try:
-		response = requests.get(url, params=params).json()
+		bot.sendMessage(user_id, question, reply_markup = keyboard)
 	except Exception as e:
 		print "Could not send message. error = {error}".format(error=e)
 
@@ -49,14 +41,14 @@ def send_question(user_id, question_no):
 		db.insert('sent', payload)
 	else:
 		send(user_id, "Thank You!!! Type info to know about your progress information.")
-	
+
 
 def send_response(user_id, question_no):
 	send_question(user_id, question_no)
 
 
 def get_latest_question_answered(user_id):
-	question_data = db.find('recieved', {'message.chat.id': user_id, 'question_no': {'$exists': True}})
+	question_data = db.find('recieved', {'user_id': user_id, 'question_no': {'$exists': True}})
 	try:
 		question_no = question_data[0]['question_no']
 	except Exception:
@@ -76,7 +68,7 @@ def get_latest_question_sent(user_id):
 def get_latest_update_id():
 	docs = db.find('recieved', {})
 	try:
-		update_id = docs[0]['update_id'] + 1
+		update_id = docs[0]['update_id']
 	except Exception:
 		update_id = None
 	return update_id
@@ -84,35 +76,37 @@ def get_latest_update_id():
 
 def callback():
 	update_id = get_latest_update_id()
-
-	url = base_url.format(token=token, method="getUpdates")
-	params = {'offset': update_id}
-	
+	if update_id is not None:
+		offset = update_id+1
+	else:
+		offset = None
 	try:
-		response = requests.get(url, params=params).json()
+		message_list = bot.getUpdates(offset=offset)
 	except Exception as e:
 		print "Could not get updates. error = {error}".format(error=e)
 	
-	if response is not None:
-		message_list = response["result"]
-		for message in message_list:
-			user_id = message['message']['from']['id']
-			if message['message']['text'] == 'info':
-				send_response(user_id, -2)
+	for message in message_list:
+		message_dict = dict(( key, message.message.__dict__[key]) for key in ('date', 'text'))
+		message_dict.update({'update_id': message.__dict__['update_id'],
+								'user_id': message.message.__dict__['from_user'].id})
+		user_id = message.message.__dict__['from_user'].id
+		if message_dict['text'] == 'info':
+			send_response(user_id, -2)
+		else:
+			question_no = get_latest_question_sent(user_id)
+			answered_q_no = get_latest_question_answered(user_id)
+			if question_no < 0:
+				send_response(user_id, 0)
+			elif question_no != answered_q_no and message_dict['text'] in questions[question_no]['choices']:
+				message_dict.update({'question_no': question_no})
+				send_response(user_id, question_no+1)
+			elif question_no > answered_q_no:
+				pass
 			else:
-				question_no = get_latest_question_sent(user_id)
-				answered_q_no = get_latest_question_answered(user_id)
-				if question_no < 0:
-					send_response(user_id, 0)
-				elif question_no != answered_q_no and message['message']['text'] in questions[question_no]['choices']:
-					message.update({'question_no': question_no})
-					send_response(user_id, question_no+1)
-				elif question_no > answered_q_no:
-					pass
-				else:
-					send_response(user_id, -3)
-			db.insert('recieved', message)
-
+				send_response(user_id, -3)
+		db.insert('recieved', message_dict)
+	
+	
 if __name__ == '__main__':
 	while True:
 		callback()
