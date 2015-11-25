@@ -47,6 +47,7 @@ def get_message(question_no):
 
 
 def send_response(user_id, question_no):
+	message = get_message(question_no)
 	if message is not None:
 		send(user_id, message)
 	else:
@@ -88,7 +89,7 @@ def send_appropriate_response(message_dict):
 		answered_q_no = get_latest_question_answered(user_id)
 		if question_no < 0:
 			send_response(user_id, 0)
-		elif question_no != answered_q_no and message_dict['text'] in questions[question_no]['choices']:
+		elif question_no > answered_q_no and message_dict['text'] in questions[question_no]['choices']:
 			message_dict.update({'question_no': question_no})
 			send_response(user_id, question_no+1)
 		elif question_no > answered_q_no:
