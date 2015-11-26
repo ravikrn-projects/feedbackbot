@@ -41,18 +41,18 @@ def send_question(user_id, question_no = None, remark = None):
 		db.insert('sent', payload)
 	send(user_id, question, choices)
 
-def send_response(user_id, remark=None, question_no=None):
-	if remark is not None:
+def send_response(user_id, response):
+	if 'remark' in response:
 		q_no = get_latest_question_sent(user_id)+1
-		message = eval('text_message.'+remark).format(q_no=q_no, reward=20*q_no)
-	elif question_no is not None and question_no >= len(text_message.questions):
+		message = eval('text_message.'+response['remark']).format(q_no=q_no, reward=20*q_no)
+	elif ('question_no' in response) and response['question_no'] >= len(text_message.questions):
 		message = text_message.thanks
 	else:
 		message = None
 
-	if message is None:
-		send_question(user_id, question_no = question_no)
-	elif remark == 'declined':
+	if message is None and 'question_no' in response:
+		send_question(user_id, question_no = response['question_no'])
+	elif response.values()[0] == 'declined':
 		send_question(user_id, remark = message)
 	else:
 		send(user_id, message)
@@ -88,14 +88,13 @@ def is_command(message_dict):
 
 def non_command_response(message_dict, user_id, latest_q_no_sent, latest_q_no_answered):
 	if latest_q_no_sent < 0:
-		send_response(user_id, question_no=0)
-
+		send_response(user_id, {'question_no'=0})
 	elif latest_q_no_sent > latest_q_no_answered:
 		if message_dict['text'] in text_message.questions[latest_q_no_sent]['choices']:
 			message_dict.update({'question_no': latest_q_no_sent})
-			send_response(user_id, question_no=latest_q_no_sent+1)
+			send_response(user_id, {'question_no'=latest_q_no_sent+1})
 	else:
-		send_response(user_id, remark='completed')
+		send_response(user_id, {'remark'='completed'})
 	return message_dict
 
 
@@ -105,9 +104,9 @@ def send_appropriate_response(message_dict):
 		send(user_id, custom_message='onboarding_message')
 	elif (get_latest_question_sent(user_id) == -1) and \
 		(message_dict['text'].lower() != 'yes'):
-		send_response(user_id, remark='declined')
+		send_response(user_id, {'remark'='declined'})
 	elif is_command(message_dict):
-		send_response(user_id, remark='info')
+		send_response(user_id, {'remark'='info'})
 	else:
 		
 		latest_q_no_sent = get_latest_question_sent(user_id)
