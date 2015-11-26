@@ -1,6 +1,5 @@
 import requests
 import time
-import text_message
 from config import token, base_url
 import json
 from db_helper import Database
@@ -11,7 +10,7 @@ bot = telegram.Bot(token)
 
 def send(user_id, text=None, choices=None, custom_message=None, first_name=None):
 	if custom_message is not None:
-		text = eval('text_message.'+custom_message)
+		text = get_info_message(custom_message)
 		if custom_message == 'onboarding_message':
 			text = text.format(name=first_name)	
 	if choices is not None:
@@ -24,6 +23,16 @@ def send(user_id, text=None, choices=None, custom_message=None, first_name=None)
 		bot.sendMessage(user_id, text, reply_markup = keyboard)
 	except Exception as e:
 		print "Could not send message. error = {error}".format(error=e)
+
+
+def get_info_message(key):
+	docs = db.find('info_messages', {key: {'$exists': True}})
+	try:
+		message = docs[0][key]
+	except:
+		message = None
+	return message
+
 
 
 def get_question(question_no):
@@ -46,11 +55,11 @@ def get_number_of_questions():
 
 def send_question(user_id, question_no = None, remark = None):
 	if remark is not None:
-		question,choices = remark, ["Yup", "Nope"]
+		question, choices = remark, ["Yup", "Nope"]
 		question_no = 0
 	else:
 		question_data = get_question(question_no)
-		question = text_message.reward.format(reward=20*(get_latest_question_sent(user_id)+1))
+		question = get_info_message('reward').format(reward=20*(get_latest_question_sent(user_id)+1))
 		question = question+question_data.get('question')
 		choices = question_data.get('choices')
 		payload = {
@@ -66,9 +75,9 @@ def send_question(user_id, question_no = None, remark = None):
 def send_response(user_id, response):
 	if 'remark' in response:
 		q_no = get_latest_question_sent(user_id)+1
-		message = eval('text_message.'+response['remark']).format(q_no=q_no, reward=20*q_no)
+		message = get_info_message(response['remark']).format(q_no=q_no, reward=20*q_no)
 	elif ('question_no' in response) and response['question_no'] >= get_number_of_questions():
-		message = text_message.thanks
+		message = get_info_message('thanks')
 	else:
 		message = None
 
