@@ -22,5 +22,9 @@ questions = [
 			{
 			"question": "Which laptop brand do you like?",
 			"choices": ["Apple", "Dell", "HP", "Other"]
+			},
+			{
+			"question": "Please select 'yes' whenever you are ready",
+			"choices": ["Yes", "No"]
 			}
 			]
