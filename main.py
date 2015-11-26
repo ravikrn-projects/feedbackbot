@@ -15,7 +15,7 @@ def send(user_id, text=None, choices=None, custom_message=None):
 	if choices is not None:
 		keyboard = json.dumps({'keyboard': [[item] for item in choices]})				
 	elif custom_message == 'onboarding_message':
-		keyboard = json.dumps({'keyboard': [['Yes', 'No']]})	  	
+		keyboard = json.dumps({'keyboard': [['Yup', 'Nope']]})	  	
 	else:
 		keyboard = json.dumps({'hide_keyboard': True})
 	try:
@@ -88,13 +88,13 @@ def is_command(message_dict):
 
 def non_command_response(message_dict, user_id, latest_q_no_sent, latest_q_no_answered):
 	if latest_q_no_sent < 0:
-		send_response(user_id, {'question_no'=0})
+		send_response(user_id, {'question_no':0})
 	elif latest_q_no_sent > latest_q_no_answered:
 		if message_dict['text'] in text_message.questions[latest_q_no_sent]['choices']:
 			message_dict.update({'question_no': latest_q_no_sent})
-			send_response(user_id, {'question_no'=latest_q_no_sent+1})
+			send_response(user_id, {'question_no':latest_q_no_sent+1})
 	else:
-		send_response(user_id, {'remark'='completed'})
+		send_response(user_id, {'remark':'completed'})
 	return message_dict
 
 
@@ -103,10 +103,10 @@ def send_appropriate_response(message_dict):
 	if message_dict['text'] == '/start Start':
 		send(user_id, custom_message='onboarding_message')
 	elif (get_latest_question_sent(user_id) == -1) and \
-		(message_dict['text'].lower() != 'yes'):
-		send_response(user_id, {'remark'='declined'})
+		(message_dict['text'].lower() != 'yup'):
+		send_response(user_id, {'remark':'declined'})
 	elif is_command(message_dict):
-		send_response(user_id, {'remark'='info'})
+		send_response(user_id, {'remark':'info'})
 	else:
 		
 		latest_q_no_sent = get_latest_question_sent(user_id)

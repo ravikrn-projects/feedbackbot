@@ -1,8 +1,12 @@
-onboarding_message = "Welcome to the world of feedback and surveys.\nWin amazing prizes by answering simple questions. Are you game?(Yes/No)"
+onboarding_message = "Hi {name} my name is freebee ! \
+Businesses always want to listen what you think!! \
+Just answer few simple queries to earn free coupon. \
+Shall I go with my first query? (Yup/Nope)\
+"
 
-incorrect_onboarding_response = "Hey! Hey! Select 'Yes' or 'No'"
+incorrect_onboarding_response = "Hey! Hey! Select 'Yup' or 'Nope'"
 
-approval_message = "Bravo! There you go!"
+approval_message = "Bravo! Here you go!"
 
 next_question_message = "Superb! Here is next question for you. Type 'stop' to stop receiving questions"
 
@@ -14,7 +18,7 @@ completed = "Check back later for more questions. Type info to know about your p
 
 declined = "Please select 'yes' if you are ready to answer questions"
 
-thanks = "Thank You!!! Type info to know about your progress information."
+thanks = "Thank You sooooo much !! It was superb chatting with you :) Type info to knwo your final reward"
 
 reward = "Rewards earned: {reward} INR \n "
 
