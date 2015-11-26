@@ -125,7 +125,7 @@ def process_received_messages(message_list):
 		message_dict = dict(( key, message.message.__dict__[key]) for key in ('date', 'text'))
 		message_dict.update({'update_id': message.__dict__['update_id'],
 							 'user_id': message.message.__dict__['from_user'].id,
-							 'first_name': message.message.from_user.__dict__['first_name']})
+							 'first_name': message.message.from_user.__dict__.get('first_name', 'Buddy')})
 		send_appropriate_response(message_dict)
 
 
