@@ -2,7 +2,6 @@ import requests
 import time
 import text_message
 from config import token, base_url
-import text_message
 import json
 from db_helper import Database
 import telegram
@@ -30,30 +29,29 @@ def send_question(user_id, question_no = None, remark = None):
 		question_no = 0
 	else:
 		question_data = text_message.questions[question_no]
-		question = "Rewards earned: {reward} INR \n ".format(reward=20*(get_latest_question_sent(user_id)+1))
+		question = text_message.reward.format(reward=20*(get_latest_question_sent(user_id)+1))
 		question = question+question_data.get('question')
 		choices = question_data.get('choices')
-	send(user_id, question, choices)
-	payload = {
+		payload = {
 				'user_id': user_id, 
 				'question': question,
 				'choices': choices,
 				'question_no': question_no
 			}
-	if remark is None:
 		db.insert('sent', payload)
+	send(user_id, question, choices)
 
-def send_response(user_id, remark):
-	if type(remark) == str:
+def send_response(user_id, remark=None, question_no=None):
+	if remark is not None:
 		q_no = get_latest_question_sent(user_id)+1
 		message = eval('text_message.'+remark).format(q_no=q_no, reward=20*q_no)
-	elif type(remark) == int and remark >= len(text_message.questions):
+	elif question_no is not None and question_no >= len(text_message.questions):
 		message = text_message.thanks
 	else:
 		message = None
 
 	if message is None:
-		send_question(user_id, question_no = remark)
+		send_question(user_id, question_no = question_no)
 	elif remark == 'declined':
 		send_question(user_id, remark = message)
 	else:
@@ -90,15 +88,14 @@ def is_command(message_dict):
 
 def non_command_response(message_dict, user_id, latest_q_no_sent, latest_q_no_answered):
 	if latest_q_no_sent < 0:
-		#message_dict.update({'question_no': 0})
-		send_response(user_id, 0)
+		send_response(user_id, question_no=0)
 
 	elif latest_q_no_sent > latest_q_no_answered:
 		if message_dict['text'] in text_message.questions[latest_q_no_sent]['choices']:
 			message_dict.update({'question_no': latest_q_no_sent})
-			send_response(user_id, latest_q_no_sent+1)
+			send_response(user_id, question_no=latest_q_no_sent+1)
 	else:
-		send_response(user_id, 'completed')
+		send_response(user_id, remark='completed')
 	return message_dict
 
 
@@ -108,10 +105,11 @@ def send_appropriate_response(message_dict):
 		send(user_id, custom_message='onboarding_message')
 	elif (get_latest_question_sent(user_id) == -1) and \
 		(message_dict['text'].lower() != 'yes'):
-		send_response(user_id, 'declined')
+		send_response(user_id, remark='declined')
 	elif is_command(message_dict):
-		send_response(user_id, 'info')
+		send_response(user_id, remark='info')
 	else:
+		
 		latest_q_no_sent = get_latest_question_sent(user_id)
 		latest_q_no_answered = get_latest_question_answered(user_id)
 		non_command_response(message_dict, user_id, latest_q_no_sent, latest_q_no_answered)
@@ -120,12 +118,9 @@ def send_appropriate_response(message_dict):
 
 def process_received_messages(message_list):
 	for message in message_list:
-		if message != message_list[-1]:
-			continue
 		message_dict = dict(( key, message.message.__dict__[key]) for key in ('date', 'text'))
 		message_dict.update({'update_id': message.__dict__['update_id'],
 								'user_id': message.message.__dict__['from_user'].id})
-		user_id = message.message.__dict__['from_user'].id
 		send_appropriate_response(message_dict)
 
 def callback():

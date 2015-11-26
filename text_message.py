@@ -16,6 +16,8 @@ declined = "Please select 'yes' if you are ready to answer questions"
 
 thanks = "Thank You!!! Type info to know about your progress information."
 
+reward = "Rewards earned: {reward} INR \n "
+
 questions = [
 			{
 			"question": "Do you prefer shopping online?",
