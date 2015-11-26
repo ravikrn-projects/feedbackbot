@@ -9,9 +9,11 @@ db = Database('messages')
 bot = telegram.Bot(token)
 	
 
-def send(user_id, text=None, choices=None, custom_message=None):
+def send(user_id, text=None, choices=None, custom_message=None, first_name=None):
 	if custom_message is not None:
-		text = eval('text_message.'+custom_message)	
+		text = eval('text_message.'+custom_message)
+		if custom_message == 'onboarding_message':
+			text = text.format(name=first_name)	
 	if choices is not None:
 		keyboard = json.dumps({'keyboard': [[item] for item in choices]})				
 	elif custom_message == 'onboarding_message':
@@ -105,17 +107,16 @@ def non_command_response(message_dict, user_id, latest_q_no_sent, latest_q_no_an
 def send_appropriate_response(message_dict):
 	user_id = message_dict['user_id']
 	if message_dict['text'] == '/start Start':
-		send(user_id, custom_message='onboarding_message')
+		send(user_id, custom_message='onboarding_message', first_name=message_dict['first_name'])
 	elif (get_latest_question_sent(user_id) == -1) and \
 		(message_dict['text'].lower() != 'yup'):
 		send_response(user_id, {'remark':'declined'})
 	elif is_command(message_dict):
 		send_response(user_id, {'remark':'info'})
 	else:
-		
 		latest_q_no_sent = get_latest_question_sent(user_id)
 		latest_q_no_answered = get_latest_question_answered(user_id)
-		non_command_response(message_dict, user_id, latest_q_no_sent, latest_q_no_answered)
+		message_dict = non_command_response(message_dict, user_id, latest_q_no_sent, latest_q_no_answered)
 	db.insert('received', message_dict)
 	
 
@@ -123,7 +124,8 @@ def process_received_messages(message_list):
 	for message in message_list:
 		message_dict = dict(( key, message.message.__dict__[key]) for key in ('date', 'text'))
 		message_dict.update({'update_id': message.__dict__['update_id'],
-								'user_id': message.message.__dict__['from_user'].id})
+							 'user_id': message.message.__dict__['from_user'].id,
+							 'first_name': message.message.from_user.__dict__['first_name']})
 		send_appropriate_response(message_dict)
 
 
