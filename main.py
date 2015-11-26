@@ -106,8 +106,8 @@ def non_command_response(message_dict, user_id, latest_q_no_sent, latest_q_no_an
 
 def send_appropriate_response(message_dict):
 	user_id = message_dict['user_id']
-	if message_dict['text'] == '/start':
-		send(user_id, custom_message='onboarding_message')
+	if message_dict['text'] == '/start Start':
+		send(user_id, custom_message='onboarding_message', first_name=message_dict['first_name'])
 	elif (get_latest_question_sent(user_id) == -1) and \
 		(message_dict['text'].lower() != 'yup'):
 		send_response(user_id, {'remark':'declined'})
