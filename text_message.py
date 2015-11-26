@@ -30,27 +30,23 @@ Coupon Code : EXTRA25"
 
 questions = [
 			{
-			"question": "Do you prefer shopping online?",
-			"choices": ["Yes", "No", "Other"]
+			"question": "I always wonder what is the favourite place for girls to shop! I know it's a hard question.",
+			"choices": ["Local markets", "Lifestyle or westside", "Online", "Others"]
 			},
 			{
-			"question": "What type of clothes do you prefer?",
-			"choices": ["Ethnic", "Saree", "Western", "Other"]
+			"question": "Mostly what kind of clothes do you shop?",
+			"choices": ["Western casuals", "Indian Ethnic", "Formals", "All :P"]
 			},
 			{
-			"question": "What is your favourite apparel brand?",
-			"choices": ["VanHeusen", "Vero Moda", "United Colors of Benetton", "Other"]
+			"question": "When it comes to going out for a party. Most of the time you land up wearing___",
+			"choices": ["blacks and grays", "Red and pinks", "Blues", "Other"]
 			},
 			{
-			"question": "What is your favourite color?",
-			"choices": ["Red", "Blue", "Pink", "Other"]
+			"question": "When it comes to online shopping which site you trust the most?",
+			"choices": ["Myntra", "Amazon", "Flipkart", "I hate shopping online"]
 			},
 			{
-			"question": "Which television brand do you like?",
-			"choices": ["Samsung", "LG", "Micromax", "Other"]
-			},
-			{
-			"question": "Which laptop brand do you like?",
-			"choices": ["Apple", "Dell", "HP", "Other"]
+			"question": "What defines you the best!!",
+			"choices": ["School Student", "Grown up college student", "Working Professional", "House maker"]
 			}
 			]

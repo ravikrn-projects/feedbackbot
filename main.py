@@ -107,8 +107,7 @@ def send_appropriate_response(message_dict):
 		send_response(user_id, {'remark':'declined'})
 	elif is_command(message_dict):
 		send_response(user_id, {'remark':'info'})
-	else:
-		
+	else:		
 		latest_q_no_sent = get_latest_question_sent(user_id)
 		latest_q_no_answered = get_latest_question_answered(user_id)
 		non_command_response(message_dict, user_id, latest_q_no_sent, latest_q_no_answered)
