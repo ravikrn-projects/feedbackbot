@@ -18,8 +18,10 @@ class Database:
 		docs = self.db[collection].find(data).sort([("_id", pymongo.DESCENDING)])
 		return [item for item in docs]
 
+
 	def update(self, collection, key, data):
 		self.db[collection].update_one(key, {"$set": data})
+
 
 	def delete(self, collection):
 		self.db[collection].delete_many({})
