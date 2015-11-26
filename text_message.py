@@ -20,7 +20,7 @@ declined = "Please select 'yes' if you are ready to answer questions"
 
 thanks = "Thank You sooooo much !! It was superb chatting with you :) Type info to knwo your final reward"
 
-reward = "Rewards earned: {reward} INR \n "
+reward = "Rewards earned: {reward} INR \n"
 
 questions = [
 			{

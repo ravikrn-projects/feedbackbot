@@ -23,9 +23,10 @@ def send(user_id, text=None, choices=None, custom_message=None):
 	except Exception as e:
 		print "Could not send message. error = {error}".format(error=e)
 
+
 def send_question(user_id, question_no = None, remark = None):
 	if remark is not None:
-		question,choices = remark, ["Yes", "No"]
+		question,choices = remark, ["Yup", "Nope"]
 		question_no = 0
 	else:
 		question_data = text_message.questions[question_no]
@@ -40,6 +41,7 @@ def send_question(user_id, question_no = None, remark = None):
 			}
 		db.insert('sent', payload)
 	send(user_id, question, choices)
+
 
 def send_response(user_id, response):
 	if 'remark' in response:
@@ -57,6 +59,7 @@ def send_response(user_id, response):
 	else:
 		send(user_id, message)
 
+
 def get_latest_question(user_id, collection):
 	question_data = db.find(collection, {'user_id': user_id, 'question_no': {'$exists': True}})
 	try:
@@ -72,6 +75,7 @@ def get_latest_question_answered(user_id):
 
 def get_latest_question_sent(user_id):
 	return get_latest_question(user_id, 'sent')
+
 
 def get_next_update_id():
 	docs = db.find('received', {})
@@ -122,6 +126,7 @@ def process_received_messages(message_list):
 								'user_id': message.message.__dict__['from_user'].id})
 		send_appropriate_response(message_dict)
 
+
 def callback():
 	offset = get_next_update_id()
 	try:
@@ -131,6 +136,7 @@ def callback():
 
 	process_received_messages(message_list)	
 		
+
 if __name__ == '__main__':
 	while True:
 		callback()
