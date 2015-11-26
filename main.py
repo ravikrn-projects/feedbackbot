@@ -26,12 +26,30 @@ def send(user_id, text=None, choices=None, custom_message=None, first_name=None)
 		print "Could not send message. error = {error}".format(error=e)
 
 
+def get_question(question_no):
+	question_data = db.find('questions', {'question_no': question_no})
+	try:
+		question_data = question_data[0]
+	except Exception:
+		question_data = None
+	return question_data
+
+
+def get_number_of_questions():
+	question_data = db.find('questions', {})
+	try:
+		question_no = len(question_data)
+	except Exception:
+		question_no = None
+	return question_no	
+
+
 def send_question(user_id, question_no = None, remark = None):
 	if remark is not None:
 		question,choices = remark, ["Yup", "Nope"]
 		question_no = 0
 	else:
-		question_data = text_message.questions[question_no]
+		question_data = get_question(question_no)
 		question = text_message.reward.format(reward=20*(get_latest_question_sent(user_id)+1))
 		question = question+question_data.get('question')
 		choices = question_data.get('choices')
@@ -49,7 +67,7 @@ def send_response(user_id, response):
 	if 'remark' in response:
 		q_no = get_latest_question_sent(user_id)+1
 		message = eval('text_message.'+response['remark']).format(q_no=q_no, reward=20*q_no)
-	elif ('question_no' in response) and response['question_no'] >= len(text_message.questions):
+	elif ('question_no' in response) and response['question_no'] >= get_number_of_questions():
 		message = text_message.thanks
 	else:
 		message = None
@@ -96,7 +114,7 @@ def non_command_response(message_dict, user_id, latest_q_no_sent, latest_q_no_an
 	if latest_q_no_sent < 0:
 		send_response(user_id, {'question_no':0})
 	elif latest_q_no_sent > latest_q_no_answered:
-		if message_dict['text'] in text_message.questions[latest_q_no_sent]['choices']:
+		if message_dict['text'] in get_question(latest_q_no_sent)['choices']:
 			message_dict.update({'question_no': latest_q_no_sent})
 			send_response(user_id, {'question_no':latest_q_no_sent+1})
 	else:

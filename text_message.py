@@ -18,14 +18,14 @@ completed = "Check back later for more questions. Type info to know about your p
 declined = "Please select 'Yup' if you are ready to answer questions"
 
 thanks = "Thank You sooooo much !! It was superb chatting with you :) \
-Here is the coupon I hope you like it ! \n \n \
-JABONG Extra 25% Off on \
-Rs. 2,299 Coupon Code: EXTRA25"
+Here is the coupon I hope you like it ! \n \n\
+JABONG \nExtra 25% Off on \
+Rs. 2,299 \nCoupon Code: EXTRA25"
 
 reward = "Rewards earned: {reward} points \n"
 
-coupon = "JABONG Minimum 25% Off + Extra 25% Off on Rs. 2,299\
-Coupon Code : EXTRA25"
+coupon = "JABONG \nMinimum 25% Off + Extra 25% Off on Rs. 2,299\
+\nCoupon Code : EXTRA25"
 
 reward = "Rewards earned: {reward} INR \n"
 
