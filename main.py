@@ -160,10 +160,11 @@ def callback():
 	offset = get_next_update_id()
 	try:
 		message_list = bot.getUpdates(offset=offset)
+		process_received_messages(message_list)	
 	except Exception as e:
 		print "Could not get updates. error = {error}".format(error=e)
 
-	process_received_messages(message_list)	
+	
 		
 
 if __name__ == '__main__':
