@@ -1,9 +1,8 @@
-import requests
-import time
-from config import token, base_url
-import json
+from config import token
 from db_helper import Database
 import telegram
+
+
 db = Database('messages')
 bot = telegram.Bot(token)
 	
@@ -14,13 +13,13 @@ def send(user_id, text=None, choices=None, custom_message=None, first_name=None)
 		if custom_message == 'onboarding_message':
 			text = text.format(name=first_name)	
 	if choices is not None:
-		keyboard = json.dumps({'keyboard': [[item] for item in choices]})				
+		keyboard = telegram.ReplyKeyboardMarkup([[item] for item in choices])				
 	elif custom_message == 'onboarding_message':
-		keyboard = json.dumps({'keyboard': [['Yup', 'Nope']]})	  	
+		keyboard = telegram.ReplyKeyboardMarkup([['Yup', 'Nope']])	  	
 	else:
-		keyboard = json.dumps({'hide_keyboard': True})
+		keyboard = telegram.ReplyKeyboardHide()
 	try:
-		bot.sendMessage(user_id, text, reply_markup = keyboard, parse_mode = "Markdown")
+		bot.sendMessage(user_id, text, reply_markup = keyboard, parse_mode = telegram.ParseMode.MARKDOWN)
 	except Exception as e:
 		print "Could not send message. error = {error}".format(error=e)
 
@@ -159,7 +158,6 @@ def callback():
 	except Exception as e:
 		print "Could not get updates. error = {error}".format(error=e)
 
-		
 
 if __name__ == '__main__':
 	while True:
