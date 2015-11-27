@@ -35,7 +35,7 @@ questions = [
 			"choices": ["Western casuals", "Indian Ethnic", "Formals", "All :P"]
 			},
 			{
-			"question": "When it comes to going out for a party. Most of the time you land up wearing___",
+			"question": "When it comes to going out for a party. Most of the time you land up wearing",
 			"choices": ["blacks and grays", "Red and pinks", "Blues", "Other"]
 			},
 			{

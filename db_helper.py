@@ -27,4 +27,4 @@ class Database:
 		self.db[collection].delete_many({})
 
 	def count_docs(self, collection):
-		self.db[collection].count()
+		return self.db[collection].count()

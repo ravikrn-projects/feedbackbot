@@ -45,7 +45,7 @@ def get_question(question_no):
 
 
 def get_number_of_questions():
-	return db.count('questions')
+	return db.count_docs('questions')
 
 
 def send_question(user_id, question_no = None, remark = None):
@@ -159,7 +159,6 @@ def callback():
 	except Exception as e:
 		print "Could not get updates. error = {error}".format(error=e)
 
-	
 		
 
 if __name__ == '__main__':
