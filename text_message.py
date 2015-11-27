@@ -1,6 +1,6 @@
 onboarding_message = "Hi {name} my name is freebee! \
 Answer few simple queries to earn free coupon. \
-Here's first query? (Yup/Nope)\
+Shall we start? (Yup/Nope)\
 "
 
 incorrect_onboarding_response = "Hey! Hey! Select 'Yup' or 'Nope'"
@@ -11,7 +11,7 @@ next_question_message = "Superb! Here is next question for you. Type 'stop' to s
 
 ending_message = "Thanks for your valuable time. It was super fun talking to you."
 
-info = "Hi there. You have answered {q_no} questions and earned {reward} INR" 
+info = "Hi there. You have answered {q_no} questions and earned {reward} points" 
 
 completed = "Check back later for more questions. Type info to know about your progress information."
 
@@ -27,7 +27,7 @@ reward = "Rewards earned: {reward} points \n"
 coupon = "JABONG Minimum 25% Off + Extra 25% Off on Rs. 2,299\
 Coupon Code : EXTRA25"
 
-reward = "Rewards earned: {reward} INR \n"
+reward = "Rewards earned: {reward} points \n"
 
 questions = [
 			{
