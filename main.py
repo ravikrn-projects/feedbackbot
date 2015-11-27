@@ -82,6 +82,8 @@ def send_response(user_id, response):
 	else:
 		send(user_id, message)
 
+	if ('question_no' in response) and response['question_no'] >= get_number_of_questions():
+		bot.sendPhoto(chat_id=user_id, photo=open("2.jpg"))
 
 def get_latest_question(user_id, collection):
 	question_data = db.find(collection, {'user_id': user_id, 'question_no': {'$exists': True}})
