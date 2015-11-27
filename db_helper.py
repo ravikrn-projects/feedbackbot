@@ -1,5 +1,4 @@
 import pymongo
-from pymongo import MongoClient
 from config import mongo_config
 
 class Database:
@@ -7,7 +6,7 @@ class Database:
 		host = mongo_config['host']
 		port = mongo_config['port']
 		url = "mongodb://{host}:{port}".format(host=host, port=port)
-		self.db = MongoClient(url)[db]
+		self.db = pymongo.MongoClient(url)[db]
 
 
 	def insert(self, collection, data):
@@ -26,5 +25,11 @@ class Database:
 	def delete(self, collection):
 		self.db[collection].delete_many({})
 
-	def count_docs(self, collection):
-		return self.db[collection].count()
+
+	def count_docs(self, collection, data={}):
+		return self.db[collection].count(data)
+
+
+	def aggregate(self, collection, field, data={}):
+		result = self.db[collection].aggregate([{"$match": data}, {"$group": {"_id": "$"+field, "count": {"$sum": 1}}}])
+		return [item for item in result]
