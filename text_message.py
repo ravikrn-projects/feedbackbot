@@ -1,5 +1,5 @@
 info_messages = {
-	"onboarding_message": "Hi {name} my name is freebee! Answer few simple queries to earn free coupon. Shall we start? (Yup/Nope)",
+	"onboarding_message": "Hi *{name}* my name is freebee! Answer few simple queries to earn free _coupon_. Shall we start? (Yup/Nope)",
 
 	"incorrect_onboarding_response": "Hey! Hey! Select 'Yup' or 'Nope'",
 
@@ -9,7 +9,7 @@ info_messages = {
 
 	"ending_message": "Thanks for your valuable time. It was super fun talking to you.",
 
-	"info": "Hi there. You have answered {q_no} questions and earned {reward} points" 
+	"info": "Hi there. You have answered {q_no} questions and earned {reward} points", 
 
 	"completed": "Check back later for more questions. Type info to know about your progress information.",
 

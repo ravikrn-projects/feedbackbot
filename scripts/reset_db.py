@@ -7,5 +7,5 @@ db = Database('messages')
 db.delete('sent')
 db.delete('received')
 
-# db.delete('questions')
-# db.delete('message_info')
+db.delete('questions')
+db.delete('message_info')

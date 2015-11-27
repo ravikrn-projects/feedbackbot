@@ -20,7 +20,7 @@ def send(user_id, text=None, choices=None, custom_message=None, first_name=None)
 	else:
 		keyboard = json.dumps({'hide_keyboard': True})
 	try:
-		bot.sendMessage(user_id, text, reply_markup = keyboard)
+		bot.sendMessage(user_id, text, reply_markup = keyboard, parse_mode = "Markdown")
 	except Exception as e:
 		print "Could not send message. error = {error}".format(error=e)
 
