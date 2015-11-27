@@ -25,3 +25,6 @@ class Database:
 
 	def delete(self, collection):
 		self.db[collection].delete_many({})
+
+	def count_docs(self, collection):
+		return self.db[collection].count()
