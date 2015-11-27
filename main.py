@@ -45,12 +45,7 @@ def get_question(question_no):
 
 
 def get_number_of_questions():
-	question_data = db.find('questions', {})
-	try:
-		question_no = len(question_data)
-	except Exception:
-		question_no = None
-	return question_no	
+	return db.count('questions')
 
 
 def send_question(user_id, question_no = None, remark = None):
