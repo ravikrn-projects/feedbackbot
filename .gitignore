@@ -2,3 +2,4 @@
 config.py
 git_script.sh
 log/bot.log
+text_message.py
