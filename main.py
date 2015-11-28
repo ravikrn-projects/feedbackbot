@@ -189,6 +189,8 @@ def send_appropriate_response(message_dict):
 
 def process_received_messages(message_list):
 	for message in message_list:
+		import ipdb
+		ipdb.set_trace()
 		message_dict = dict(( key, message.message.__dict__[key]) for key in ('date', 'text'))
 		message_dict.update({'update_id': message.__dict__['update_id'],
 							 'user_id': message.message.__dict__['from_user'].id,
