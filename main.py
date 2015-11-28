@@ -2,10 +2,12 @@ import config
 import db_helper
 import telegram
 import logger
+import question
 
 logger = logger.Logger(config.log_file, config.logging_level)
 db = db_helper.Database('messages')
 bot = telegram.Bot(config.token)
+q_obj = question.Question(db)
 	
 
 def get_reply_keyboard(choices, custom_message):
@@ -46,26 +48,13 @@ def get_info_message(key):
 	return message
 
 
-def get_question(question_no):
-	question_data = db.find('questions', {'question_no': question_no})
-	try:
-		question_data = question_data[0]
-	except Exception:
-		question_data = None
-	return question_data
-
-
-def get_number_of_questions():
-	return db.count_docs('questions')
-
-
 def send_question(user_id, question_no = None, remark = None):
 	if remark is not None:
 		question, choices = remark, ["Yup", "Nope"]
 		question_no = 0
 	else:
-		question_data = get_question(question_no)
-		question = get_info_message('reward').format(reward=20*(get_latest_question_sent(user_id)+1))
+		question_data = q_obj.get_question(question_no)
+		question = get_info_message('reward').format(reward=20*(q_obj.get_latest_question_sent(user_id)+1))
 		question = question+question_data.get('question')
 		choices = question_data.get('choices')
 		payload = {
@@ -81,15 +70,15 @@ def send_question(user_id, question_no = None, remark = None):
 def decide_message(response, user_id):
 	message = None
 	if 'remark' in response:
-		q_no = get_latest_question_sent(user_id)+1
+		q_no = q_obj.get_latest_question_sent(user_id)+1
 		message = get_info_message(response['remark']).format(q_no=q_no, reward=20*q_no)
-	elif ('question_no' in response) and response['question_no'] >= get_number_of_questions():
+	elif ('question_no' in response) and response['question_no'] >= q_obj.get_number_of_questions():
 		message = get_info_message('thanks')
 	return message
 
 
 def send_coupon(response, user_id):
-	if ('question_no' in response) and response['question_no'] >= get_number_of_questions():
+	if ('question_no' in response) and response['question_no'] >= q_obj.get_number_of_questions():
 		bot.sendPhoto(chat_id=user_id, photo=open(config.coupon_image))
 
 
@@ -102,23 +91,6 @@ def send_response(user_id, response):
 	else:
 		send(user_id, message)
 	send_coupon(response, user_id)
-
-
-def get_latest_question(user_id, collection):
-	question_data = db.find(collection, {'user_id': user_id, 'question_no': {'$exists': True}})
-	try:
-		question_no = question_data[0]['question_no']
-	except Exception:
-		question_no = -1
-	return question_no
-
-
-def get_latest_question_answered(user_id):
-	return get_latest_question(user_id, 'received')
-
-
-def get_latest_question_sent(user_id):
-	return get_latest_question(user_id, 'sent')
 
 
 def get_next_update_id():
@@ -135,7 +107,7 @@ def is_command(text):
 
 
 def accept_valid_choice(message_dict, latest_q_no_sent, user_id):
-	if message_dict['text'] in get_question(latest_q_no_sent)['choices']:
+	if message_dict['text'] in q_obj.get_question(latest_q_no_sent)['choices']:
 		message_dict.update({'question_no': latest_q_no_sent})
 	return message_dict
 
@@ -163,7 +135,7 @@ def non_command_response(message_dict, latest_q_no_sent, latest_q_no_answered):
 	elif chat_in_progress(latest_q_no_sent, latest_q_no_answered):
 		message_dict = accept_valid_choice(message_dict, latest_q_no_sent, user_id)
 		send_response(user_id, {'question_no':latest_q_no_sent+1})
-		
+
 	else:
 		send_response(user_id, {'remark':'completed'})
 	
@@ -183,8 +155,8 @@ def send_appropriate_response(message_dict):
 	if is_command(message_dict['text']):
 		command_response(message_dict, custom_message)
 	else:
-		latest_q_no_sent = get_latest_question_sent(user_id)
-		latest_q_no_answered = get_latest_question_answered(user_id)
+		latest_q_no_sent = q_obj.get_latest_question_sent(user_id)
+		latest_q_no_answered = q_obj.get_latest_question_answered(user_id)
 		message_dict = non_command_response(message_dict, latest_q_no_sent, latest_q_no_answered)
 	db.insert('received', message_dict)
 	
