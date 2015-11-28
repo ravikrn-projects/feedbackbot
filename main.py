@@ -1,10 +1,11 @@
-from config import token
-from db_helper import Database
+import config
+import db_helper
 import telegram
+import logger
 
-
-db = Database('messages')
-bot = telegram.Bot(token)
+logger = logger.Logger(config.log_file, config.logging_level)
+db = db_helper.Database('messages')
+bot = telegram.Bot(config.token)
 	
 
 def send(user_id, text=None, choices=None, custom_message=None, first_name=None):
@@ -21,7 +22,7 @@ def send(user_id, text=None, choices=None, custom_message=None, first_name=None)
 	try:
 		bot.sendMessage(user_id, text, reply_markup = keyboard, parse_mode = telegram.ParseMode.MARKDOWN)
 	except Exception as e:
-		print "Could not send message. error = {error}".format(error=e)
+		logger.error("Could not send message. error = {error}".format(error=e))
 
 
 def get_info_message(key):
@@ -31,7 +32,6 @@ def get_info_message(key):
 	except:
 		message = None
 	return message
-
 
 
 def get_question(question_no):
@@ -158,7 +158,7 @@ def callback():
 		message_list = bot.getUpdates(offset=offset)
 		process_received_messages(message_list)	
 	except Exception as e:
-		print "Could not get updates. error = {error}".format(error=e)
+		logger.error("Could not get updates. error = {error}".format(error=e))
 
 
 if __name__ == '__main__':
