@@ -8,19 +8,31 @@ db = db_helper.Database('messages')
 bot = telegram.Bot(config.token)
 	
 
-def send(user_id, text=None, choices=None, custom_message=None, first_name=None):
-	if custom_message is not None:
-		text = get_info_message(custom_message)
-		if custom_message == 'onboarding_message':
-			text = text.format(name=first_name)	
+def get_reply_keyboard(choices, custom_message):
 	if choices is not None:
 		keyboard = telegram.ReplyKeyboardMarkup([[item] for item in choices])				
 	elif custom_message == 'onboarding_message':
 		keyboard = telegram.ReplyKeyboardMarkup([['Yup', 'Nope']])	  	
 	else:
 		keyboard = telegram.ReplyKeyboardHide()
+	return keyboard
+
+
+def get_text_to_send(custom_message, first_name):
+	text = None
+	if custom_message is not None:
+		text = get_info_message(custom_message)
+		if custom_message == 'onboarding_message':
+			text = text.format(name=first_name)	
+	return text
+
+
+def send(user_id, text=None, choices=None, custom_message=None, first_name=None):
+	if text is None:
+		text = get_text_to_send(custom_message, first_name)
+	keyboard = get_reply_keyboard(choices, custom_message)
 	try:
-		bot.sendMessage(user_id, text, reply_markup = keyboard, parse_mode = telegram.ParseMode.MARKDOWN)
+		bot.sendMessage(chat_id=user_id, text=text, reply_markup=keyboard, parse_mode=telegram.ParseMode.MARKDOWN)
 	except Exception as e:
 		logger.error("Could not send message. error = {error}".format(error=e))
 
@@ -118,31 +130,56 @@ def get_next_update_id():
 	return update_id
 
 
-def is_command(message_dict):
-	return message_dict['text'].lower() == 'info'
+def is_command(text):
+	return text.lower() in config.commands
+
+
+def accept_valid_choice(message_dict, latest_q_no_sent, user_id):
+	if message_dict['text'] in get_question(latest_q_no_sent)['choices']:
+		message_dict.update({'question_no': latest_q_no_sent})
+		send_response(user_id, {'question_no':latest_q_no_sent+1})
+	return message_dict
+
+
+def onboarding_message_declined(latest_q_no_sent, text):
+	return (latest_q_no_sent == -1) and (text.lower() != config.ACCEPTED)
+
+
+def onboarding_message_accepted(latest_q_no_sent):
+	return latest_q_no_sent < 0
+
+
+def chat_in_progress(latest_q_no_sent, latest_q_no_answered):
+	return latest_q_no_sent > latest_q_no_answered
 
 
 def non_command_response(message_dict, user_id, latest_q_no_sent, latest_q_no_answered):
-	if latest_q_no_sent < 0:
+	if onboarding_message_declined(latest_q_no_sent, message_dict['text']):
+		send_response(user_id, {'remark':'declined'})
+
+	elif onboarding_message_accepted(latest_q_no_sent):
 		send_response(user_id, {'question_no':0})
-	elif latest_q_no_sent > latest_q_no_answered:
-		if message_dict['text'] in get_question(latest_q_no_sent)['choices']:
-			message_dict.update({'question_no': latest_q_no_sent})
-			send_response(user_id, {'question_no':latest_q_no_sent+1})
+	
+	elif chat_in_progress(latest_q_no_sent, latest_q_no_answered):
+		message_dict = accept_valid_choice(message_dict, latest_q_no_sent, user_id)
+	
 	else:
 		send_response(user_id, {'remark':'completed'})
+	
 	return message_dict
+
+
+def command_response(message_dict, user_id, custom_message):
+	if message_dict['text'] in config.start_commands:
+		send(user_id, custom_message='onboarding_message', first_name=message_dict['first_name'])
+	elif message_dict['text'] == info_command:
+		send_response(user_id, {'remark':'info'})
 
 
 def send_appropriate_response(message_dict):
 	user_id = message_dict['user_id']
-	if message_dict['text'] == '/start Start' or message_dict['text'] == '/start':
-		send(user_id, custom_message='onboarding_message', first_name=message_dict['first_name'])
-	elif (get_latest_question_sent(user_id) == -1) and \
-		(message_dict['text'].lower() != 'yup'):
-		send_response(user_id, {'remark':'declined'})
-	elif is_command(message_dict):
-		send_response(user_id, {'remark':'info'})
+	if is_command(message_dict['text']):
+		command_response(message_dict, user_id, custom_message, first_name)
 	else:
 		latest_q_no_sent = get_latest_question_sent(user_id)
 		latest_q_no_answered = get_latest_question_answered(user_id)
