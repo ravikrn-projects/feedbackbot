@@ -66,24 +66,31 @@ def send_question(user_id, question_no = None, remark = None):
 	send(user_id, question, choices)
 
 
-def send_response(user_id, response):
+def decide_message(response, user_id):
+	message = None
 	if 'remark' in response:
 		q_no = get_latest_question_sent(user_id)+1
 		message = get_info_message(response['remark']).format(q_no=q_no, reward=20*q_no)
 	elif ('question_no' in response) and response['question_no'] >= get_number_of_questions():
 		message = get_info_message('thanks')
-	else:
-		message = None
+	return message
 
+
+def send_coupon(response, user_id):
+	if ('question_no' in response) and response['question_no'] >= get_number_of_questions():
+		bot.sendPhoto(chat_id=user_id, photo=open(config.coupon_image))
+
+
+def send_response(user_id, response):
+	message = decide_message(response, user_id)
 	if message is None and 'question_no' in response:
 		send_question(user_id, question_no = response['question_no'])
 	elif response.values()[0] == 'declined':
 		send_question(user_id, remark = message)
 	else:
 		send(user_id, message)
+	send_coupon(response, user_id)
 
-	if ('question_no' in response) and response['question_no'] >= get_number_of_questions():
-		bot.sendPhoto(chat_id=user_id, photo=open("coupon.jpg"))
 
 def get_latest_question(user_id, collection):
 	question_data = db.find(collection, {'user_id': user_id, 'question_no': {'$exists': True}})
