@@ -3,11 +3,14 @@ import db_helper
 import telegram
 import logger
 import question
+import info_message
 
 logger = logger.Logger(config.log_file, config.logging_level)
 db = db_helper.Database('messages')
 bot = telegram.Bot(config.token)
+
 q_obj = question.Question(db)
+info_mgs_obj = info_message.InfoMessage(db)
 	
 
 def get_reply_keyboard(choices, custom_message):
@@ -23,7 +26,7 @@ def get_reply_keyboard(choices, custom_message):
 def get_text_to_send(custom_message, first_name):
 	text = None
 	if custom_message is not None:
-		text = get_info_message(custom_message)
+		text = info_mgs_obj.get_info_message(custom_message)
 		if custom_message == 'onboarding_message':
 			text = text.format(name=first_name)	
 	return text
@@ -39,22 +42,13 @@ def send(user_id, text=None, choices=None, custom_message=None, first_name=None)
 		logger.error("Could not send message. error = {error}".format(error=e))
 
 
-def get_info_message(key):
-	docs = db.find('info_messages', {key: {'$exists': True}})
-	try:
-		message = docs[0][key]
-	except:
-		message = None
-	return message
-
-
 def send_question(user_id, question_no = None, remark = None):
 	if remark is not None:
 		question, choices = remark, ["Yup", "Nope"]
 		question_no = 0
 	else:
 		question_data = q_obj.get_question(question_no)
-		question = get_info_message('reward').format(reward=20*(q_obj.get_latest_question_sent(user_id)+1))
+		question = info_mgs_obj.get_info_message('reward').format(reward=20*(q_obj.get_latest_question_sent(user_id)+1))
 		question = question+question_data.get('question')
 		choices = question_data.get('choices')
 		payload = {
@@ -71,9 +65,9 @@ def decide_message(response, user_id):
 	message = None
 	if 'remark' in response:
 		q_no = q_obj.get_latest_question_sent(user_id)+1
-		message = get_info_message(response['remark']).format(q_no=q_no, reward=20*q_no)
+		message = info_mgs_obj.get_info_message(response['remark']).format(q_no=q_no, reward=20*q_no)
 	elif ('question_no' in response) and response['question_no'] >= q_obj.get_number_of_questions():
-		message = get_info_message('thanks')
+		message = info_mgs_obj.get_info_message('thanks')
 	return message
 
 
