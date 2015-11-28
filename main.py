@@ -137,7 +137,6 @@ def is_command(text):
 def accept_valid_choice(message_dict, latest_q_no_sent, user_id):
 	if message_dict['text'] in get_question(latest_q_no_sent)['choices']:
 		message_dict.update({'question_no': latest_q_no_sent})
-		send_response(user_id, {'question_no':latest_q_no_sent+1})
 	return message_dict
 
 
@@ -153,7 +152,8 @@ def chat_in_progress(latest_q_no_sent, latest_q_no_answered):
 	return latest_q_no_sent > latest_q_no_answered
 
 
-def non_command_response(message_dict, user_id, latest_q_no_sent, latest_q_no_answered):
+def non_command_response(message_dict, latest_q_no_sent, latest_q_no_answered):
+	user_id = message_dict['user_id']
 	if onboarding_message_declined(latest_q_no_sent, message_dict['text']):
 		send_response(user_id, {'remark':'declined'})
 
@@ -162,14 +162,16 @@ def non_command_response(message_dict, user_id, latest_q_no_sent, latest_q_no_an
 	
 	elif chat_in_progress(latest_q_no_sent, latest_q_no_answered):
 		message_dict = accept_valid_choice(message_dict, latest_q_no_sent, user_id)
-	
+		send_response(user_id, {'question_no':latest_q_no_sent+1})
+		
 	else:
 		send_response(user_id, {'remark':'completed'})
 	
 	return message_dict
 
 
-def command_response(message_dict, user_id, custom_message):
+def command_response(message_dict, custom_message):
+	user_id = message_dict['user_id']
 	if message_dict['text'] in config.start_commands:
 		send(user_id, custom_message='onboarding_message', first_name=message_dict['first_name'])
 	elif message_dict['text'] == info_command:
@@ -179,22 +181,23 @@ def command_response(message_dict, user_id, custom_message):
 def send_appropriate_response(message_dict):
 	user_id = message_dict['user_id']
 	if is_command(message_dict['text']):
-		command_response(message_dict, user_id, custom_message, first_name)
+		command_response(message_dict, custom_message)
 	else:
 		latest_q_no_sent = get_latest_question_sent(user_id)
 		latest_q_no_answered = get_latest_question_answered(user_id)
-		message_dict = non_command_response(message_dict, user_id, latest_q_no_sent, latest_q_no_answered)
+		message_dict = non_command_response(message_dict, latest_q_no_sent, latest_q_no_answered)
 	db.insert('received', message_dict)
 	
 
 def process_received_messages(message_list):
 	for message in message_list:
-		import ipdb
-		ipdb.set_trace()
-		message_dict = dict(( key, message.message.__dict__[key]) for key in ('date', 'text'))
-		message_dict.update({'update_id': message.__dict__['update_id'],
-							 'user_id': message.message.__dict__['from_user'].id,
-							 'first_name': message.message.from_user.__dict__.get('first_name', 'Buddy')})
+		message_dict ={
+				 		'date': str(message.message['date']),
+					 	'text': message.message['text'],
+					 	'update_id': message['update_id'],
+					 	'user_id': message.message['from_user'].id,
+					 	'first_name': message.message.from_user.first_name
+					}
 		send_appropriate_response(message_dict)
 
 
