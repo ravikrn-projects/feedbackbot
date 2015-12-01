@@ -131,21 +131,21 @@ def chat_in_progress(latest_q_no_sent, latest_q_no_answered):
 
 
 def non_command_response(message_dict, latest_q_no_sent, latest_q_no_answered):
-	user_id = message_dict['user_id']
 	if onboarding_message_declined(latest_q_no_sent, message_dict['text']):
-		send_response(user_id, {'remark':'declined'})
-
+	    param = {'remark':'declined'}
 	elif onboarding_message_accepted(latest_q_no_sent):
-		send_response(user_id, {'question_no':0})
-	
+	    param = {'question_no':0}
 	elif chat_in_progress(latest_q_no_sent, latest_q_no_answered):
-		message_dict = accept_valid_choice(message_dict, latest_q_no_sent, user_id)
-		send_response(user_id, {'question_no':latest_q_no_sent+1})
-
+	    param = {'question_no':latest_q_no_sent+1}
 	else:
-		send_response(user_id, {'remark':'completed'})
+	    param = {'remark':'completed'}
+	send_response(message_dict['user_id'], param)
 	
-	return message_dict
+
+def update_answered_question(message_dict, latest_q_no_sent, latest_q_no_answered):
+    if chat_in_progress(latest_q_no_sent, latest_q_no_answered):
+        message_dict = accept_valid_choice(message_dict, latest_q_no_sent, message_dict['user_id'])
+    return message_dict
 
 
 def command_response(message_dict):
@@ -163,7 +163,8 @@ def send_appropriate_response(message_dict):
 	else:
 		latest_q_no_sent = q_obj.get_latest_question_sent(user_id)
 		latest_q_no_answered = q_obj.get_latest_question_answered(user_id)
-		message_dict = non_command_response(message_dict, latest_q_no_sent, latest_q_no_answered)
+		non_command_response(message_dict, latest_q_no_sent, latest_q_no_answered)
+                message_dict = update_answered_question(message_dict, latest_q_no_sent, latest_q_no_answered)
 	db.insert('received', message_dict)
 	
 
