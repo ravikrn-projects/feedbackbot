@@ -4,6 +4,7 @@ import telegram
 import logger
 import question
 import info_message
+import coupon
 
 logger = logger.Logger(config.log_file, config.logging_level)
 db = db_helper.Database('messages')
@@ -11,6 +12,7 @@ bot = telegram.Bot(config.token)
 
 q_obj = question.Question(db)
 info_mgs_obj = info_message.InfoMessage(db)
+coupon_obj = coupon.Coupon(db)
 	
 
 def get_reply_keyboard(choices, custom_message):
@@ -42,6 +44,13 @@ def send(user_id, text=None, choices=None, custom_message=None, first_name=None)
 		logger.error("Could not send message. error = {error}".format(error=e))
 
 
+def send_photo(user_id, image):
+    img = open('temp.png', 'w')
+    img.write(image)
+    img.close()
+    bot.sendPhoto(chat_id=user_id, photo=open('temp.png'))
+
+
 def send_question(user_id, question_no = None, remark = None):
 	if remark is not None:
 		question, choices = remark, ["Yup", "Nope"]
@@ -58,6 +67,8 @@ def send_question(user_id, question_no = None, remark = None):
 				'question_no': question_no
 			}
 		db.insert('sent', payload)
+                if question_data['choice_type'] == 'image':
+                    send_photo(user_id, question_data['image'])
 	send(user_id, question, choices)
 
 
@@ -73,7 +84,8 @@ def decide_message(response, user_id):
 
 def send_coupon(response, user_id):
 	if ('question_no' in response) and response['question_no'] >= q_obj.get_number_of_questions():
-		bot.sendPhoto(chat_id=user_id, photo=open(config.coupon_image))
+                coupon_no = 0
+		send_photo(user_id, coupon_obj.get_coupon(coupon_no))
 
 
 def send_response(user_id, response):
