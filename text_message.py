@@ -15,8 +15,7 @@ info_messages = {
 
 	"declined": "Please select 'Yup' if you are ready to answer questions",
 
-	"thanks": "Thank You sooooo much !! It was superb chatting with you :) Here is the coupon I hope you like it ! \n \n\
-				JABONG \nExtra 25% Off on Rs. 2,299 \nCoupon Code: EXTRA25",
+	"thanks": "Thank You sooooo much !! It was superb chatting with you :) Here is the coupon I hope you like it !",
 
 	"reward": "Rewards earned: {reward} points \n",
 
