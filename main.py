@@ -152,7 +152,7 @@ def command_response(message_dict):
 	user_id = message_dict['user_id']
 	if message_dict['text'] in config.start_commands:
 		send(user_id, custom_message='onboarding_message', first_name=message_dict['first_name'])
-	elif message_dict['text'] == info_command:
+	elif message_dict['text'] == config.info_command:
 		send_response(user_id, {'remark':'info'})
 
 
@@ -180,6 +180,8 @@ def process_received_messages(message_list):
 
 
 def callback():
+        # import ipdb
+        # ipdb.set_trace()
 	offset = get_next_update_id()
 	try:
 		message_list = bot.getUpdates(offset=offset)
