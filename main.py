@@ -136,7 +136,7 @@ def non_command_response(message_dict, latest_q_no_sent, latest_q_no_answered):
 	return message_dict
 
 
-def command_response(message_dict, custom_message):
+def command_response(message_dict):
 	user_id = message_dict['user_id']
 	if message_dict['text'] in config.start_commands:
 		send(user_id, custom_message='onboarding_message', first_name=message_dict['first_name'])
@@ -147,7 +147,7 @@ def command_response(message_dict, custom_message):
 def send_appropriate_response(message_dict):
 	user_id = message_dict['user_id']
 	if is_command(message_dict['text']):
-		command_response(message_dict, custom_message)
+		command_response(message_dict)
 	else:
 		latest_q_no_sent = q_obj.get_latest_question_sent(user_id)
 		latest_q_no_answered = q_obj.get_latest_question_answered(user_id)
