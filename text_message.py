@@ -27,22 +27,41 @@ info_messages = {
 questions = [
 			{
 			"question": "I always wonder what is the favourite place for girls to shop! I know it's a hard question.",
-			"choices": ["Local markets", "Lifestyle or westside", "Online", "Others"]
-			},
-			{
-			"question": "Mostly what kind of clothes do you shop?",
-			"choices": ["Western casuals", "Indian Ethnic", "Formals", "All :P"]
-			},
-			{
-			"question": "When it comes to going out for a party. Most of the time you land up wearing",
-			"choices": ["blacks and grays", "Red and pinks", "Blues", "Other"]
-			},
-			{
-			"question": "When it comes to online shopping which site you trust the most?",
-			"choices": ["Myntra", "Amazon", "Flipkart", "I hate shopping online"]
-			},
-			{
-			"question": "What defines you the best!!",
-			"choices": ["School Student", "Grown up college student", "Working Professional", "House maker"]
-			}
+			"choices": ["Local markets", "Lifestyle or westside", "Online", "Others"],
+                        "choice_type": "text"
+                        },
+                        {
+                        "question": "Which T shirt you think will suit you the best.",
+                        "choices": ["A", "B"],
+                        "choice_type": "image",
+                        "image_path": "inframe_2.png"
+                        },
+                        {
+                        "question": "Mostly what kind of clothes do you shop?",
+                        "choices": ["Western casuals", "Indian Ethnic", "Formals", "All :P"],
+                        "choice_type": "text"
+                        },
+                        {
+                        "question": "When it comes to going out for a party. Most of the time you land up wearing",
+                        "choices": ["blacks and grays", "Red and pinks", "Blues", "Other"],
+                        "choice_type": "text"
+                        },
+                        {
+                        "question": "When it comes to online shopping which site you trust the most?",
+                        "choices": ["Myntra", "Amazon", "Flipkart", "I hate shopping online"],
+                        "choice_type": "text"
+                        },
+                        {
+                        "question": "What defines you the best!!",
+                        "choices": ["School Student", "Grown up college student", "Working Professional", "House maker"],
+                        "choice_type": "text"
+                        }
 			]
+
+coupons = [
+        {
+            "image_path": "coupon.jpg" 
+        }
+        ]
+
+

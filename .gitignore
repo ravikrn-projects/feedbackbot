@@ -1,4 +1,6 @@
 *.pyc
+*.png
+*.swp
 config.py
 git_script.sh
 log/bot.log
