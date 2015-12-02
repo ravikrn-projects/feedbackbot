@@ -150,7 +150,7 @@ def update_answered_question(message_dict, latest_q_no_sent, latest_q_no_answere
 
 def command_response(message_dict):
 	user_id = message_dict['user_id']
-	if message_dict['text'] in config.start_commands:
+	if message_dict['text'].startswith(config.start_command):
 		send(user_id, custom_message='onboarding_message', first_name=message_dict['first_name'])
 	elif message_dict['text'] == config.info_command:
 		send_response(user_id, {'remark':'info'})
