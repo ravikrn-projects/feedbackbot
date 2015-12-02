@@ -109,7 +109,7 @@ def get_next_update_id():
 
 
 def is_command(text):
-	return text.lower() in config.commands
+	return text.lower().startswith(tuple(config.commands))
 
 
 def accept_valid_choice(message_dict, latest_q_no_sent, user_id):
